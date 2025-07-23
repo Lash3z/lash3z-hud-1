@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>LASH3Z Admin Panel</title>
+  <link rel="stylesheet" href="../style.css" />
+  <style>
+    body { margin: 0; background: #000; color: #0ff; font-family: 'Orbitron', sans-serif; }
+    .fixed-header {
+      position: fixed; top: 0; left: 0; right: 0;
+      background: #000; color: cyan; text-align: center;
+      padding: 15px; font-size: 22px; z-index: 1000;
+      box-shadow: 0 0 15px cyan;
+    }
+    .admin-wrapper { display: flex; padding-top: 70px; }
+    .admin-sidebar {
+      position: fixed; top: 70px; left: 0; width: 200px;
+      background-color: #111; height: calc(100vh - 70px);
+      border-right: 2px solid cyan; box-shadow: 0 0 15px cyan;
+      padding: 20px; color: cyan;
+    }
+    .admin-sidebar p { margin-bottom: 12px; }
+    .admin-container {
+      margin-left: 220px; padding: 20px;
+      width: calc(100% - 220px);
+    }
+    .admin-row {
+      display: flex; justify-content: space-between;
+      gap: 40px; flex-wrap: wrap; margin-bottom: 40px;
+    }
+    .admin-section {
+      border: 2px solid cyan; box-shadow: 0 0 20px cyan;
+      border-radius: 16px; padding: 20px;
+      background-color: #111; flex: 1; min-width: 360px;
+    }
+    .admin-section h2 { text-align: center; margin-bottom: 20px; }
+    .admin-section label { display: block; margin-top: 15px; color: #0ff; }
+    .admin-section input,
+    .admin-section textarea {
+      width: 100%; padding: 10px; margin-top: 5px;
+      border-radius: 8px; border: none;
+      background-color: #222; color: #0ff;
+    }
+    .admin-section button {
+      margin-top: 15px; padding: 12px 25px;
+      font-size: 16px; border-radius: 10px;
+      background: #0ff; color: #000;
+      font-weight: bold; border: none; cursor: pointer;
+    }
+    .admin-section button:hover {
+      background: #00ffff88;
+    }
+  </style>
+</head>
+<body>
+  <div class="fixed-header">LASH3Z Control Panel</div>
+
+  <div class="admin-wrapper">
+    <div class="admin-sidebar">
+      <p>Settings</p>
+      <p>Vault</p>
+      <p>Bonus</p>
+      <p>Forms</p>
+    </div>
+
+    <div class="admin-container">
+      <div class="admin-row">
+        <!-- Vault Settings -->
+        <div class="admin-section">
+          <h2>Vault Code</h2>
+          <label for="vaultCode">Vault Code</label>
+          <input id="vaultCode" type="text" placeholder="Enter vault code" />
+
+          <label for="bonusMax">Vault Max Bonus</label>
+          <input id="bonusMax" type="number" placeholder="Max bonus ($)" />
+
+          <button onclick="saveVaultSettings()">Save Vault Settings</button>
+        </div>
+
+        <!-- Bonus Generator Settings -->
+        <div class="admin-section">
+          <h2>Bonus Generator</h2>
+          <label for="bonusMin">Bonus Min</label>
+          <input id="bonusMin" type="number" placeholder="Min bonus ($)" />
+
+          <label for="bonusMaxAlt">Bonus Max</label>
+          <input id="bonusMaxAlt" type="number" placeholder="Max bonus ($)" />
+
+          <label for="bonusVariants">Prize Variants</label>
+          <textarea id="bonusVariants" placeholder="Comma separated list of values"></textarea>
+
+          <button onclick="saveBonusSettings()">Save Bonus Settings</button>
+        </div>
+
+        <!-- Prediction Form Toggles -->
+        <div class="admin-section">
+          <h2>Prediction Form Toggles</h2>
+          <label>
+            <input type="checkbox" id="megaToggle" />
+            Enable Mega Hunt Form
+          </label>
+          <label>
+            <input type="checkbox" id="superToggle" />
+            Enable Super Hunt Form
+          </label>
+          <label>
+            <input type="checkbox" id="playerToggle" />
+            Enable Player Hunt Form
+          </label>
+
+          <button onclick="saveFormToggles()">Save Form Toggles</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_URL = '/api/admin/settings';
+
+    // Load existing settings on load
+    window.addEventListener('DOMContentLoaded', () => {
+      fetch(API_URL)
+        .then(res => res.json())
+        .then(data => {
+          if (!data) return;
+          document.getElementById('vaultCode').value = data.vaultCode || '';
+          document.getElementById('bonusMax').value = data.bonusMax || '';
+          document.getElementById('bonusMin').value = data.bonusMin || '';
+          document.getElementById('bonusMaxAlt').value = data.bonusMax || '';
+          document.getElementById('bonusVariants').value = (data.bonusVariants || []).join(', ');
+          document.getElementById('megaToggle').checked = !!data.predictionMega;
+          document.getElementById('superToggle').checked = !!data.predictionSuper;
+          document.getElementById('playerToggle').checked = !!data.predictionPlayer;
+        })
+        .catch(err => console.error('Failed to load settings:', err));
+    });
+
+    function saveVaultSettings() {
+      const vaultCode = document.getElementById('vaultCode').value.trim();
+      const bonusMax = parseFloat(document.getElementById('bonusMax').value);
+      if (!vaultCode || isNaN(bonusMax)) return alert("Fill both fields correctly");
+
+      const payload = { vaultCode, bonusMax };
+      fetch(API_URL, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+        .then(res => res.json())
+        .then(() => alert('Vault settings saved.'))
+        .catch(() => alert('Failed to save vault settings.'));
+    }
+
+    function saveBonusSettings() {
+      const bonusMin = parseFloat(document.getElementById('bonusMin').value);
+      const bonusMax = parseFloat(document.getElementById('bonusMaxAlt').value);
+      const variants = document.getElementById('bonusVariants').value
+        .split(',')
+        .map(val => parseFloat(val.trim()))
+        .filter(n => !isNaN(n));
+
+      const payload = { bonusMin, bonusMax, bonusVariants: variants };
+
+      fetch(API_URL, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+        .then(res => res.json())
+        .then(() => alert('Bonus settings saved.'))
+        .catch(() => alert('Failed to save bonus settings.'));
+    }
+
+    function saveFormToggles() {
+      const predictionMega = document.getElementById('megaToggle').checked;
+      const predictionSuper = document.getElementById('superToggle').checked;
+      const predictionPlayer = document.getElementById('playerToggle').checked;
+
+      const payload = { predictionMega, predictionSuper, predictionPlayer };
+
+      fetch(API_URL, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+        .then(res => res.json())
+        .then(() => alert('Prediction form toggles saved.'))
+        .catch(() => alert('Failed to save form toggles.'));
+    }
+  </script>
+</body>
+</html>
