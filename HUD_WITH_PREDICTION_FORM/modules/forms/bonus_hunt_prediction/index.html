@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Bonus Hunt Prediction</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="form-container">
+    <h1>Bonus Hunt Prediction</h1>
+    <form id="predictionForm">
+      <label>How many 100x wins?</label>
+      <select name="hundredXWins" required>
+        <option value="">Select</option>
+<option value="0">0</option>
+<option value="1">1</option>
+<option value="2">2</option>
+<option value="3">3</option>
+<option value="4">4</option>
+<option value="5">5</option>
+<option value="6">6</option>
+<option value="7">7</option>
+<option value="8">8</option>
+<option value="9">9</option>
+<option value="10">10</option>
+<option value="10+">10+</option>
+      </select>
+
+      <label>Top Performing Slot</label>
+      <select name="topGame" id="topGame" required></select>
+
+      <label>Lowest Paying Slot</label>
+      <select name="lowestGame" id="lowestGame" required></select>
+
+      <label>Will any game pay over 500x?</label>
+      <select name="over500x" required>
+        <option value="">Select</option>
+        <option value="Yes">Yes</option>
+        <option value="No">No</option>
+      </select>
+
+      <label>Will the hunt end in profit?</label>
+      <select name="profit" required>
+        <option value="">Select</option>
+        <option value="Yes">Yes</option>
+        <option value="No">No</option>
+      </select>
+
+      <label>Estimated Final Profit/Loss?</label>
+      <select name="profitRange" required>
+        <option value="">Select</option>
+        <option value="-500 or worse">-500 or worse</option>
+        <option value="-300 to -100">-300 to -100</option>
+        <option value="Break Even (0)">Break Even (0)</option>
+        <option value="+1 to +300">+1 to +300</option>
+        <option value="+301 to +600">+301 to +600</option>
+        <option value="+600+">+600+</option>
+      </select>
+
+      <button type="submit">Submit Prediction</button>
+    </form>
+    <div id="confirmation" style="display:none;">✅ Your prediction has been submitted!</div>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>

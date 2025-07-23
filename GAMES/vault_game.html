@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Vault Challenge</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    body {
+      background: #000;
+      font-family: 'Orbitron', sans-serif;
+      color: #fff;
+      text-align: center;
+      padding-top: 80px;
+    }
+
+    .vault-box {
+      background: #111;
+      padding: 40px;
+      margin: auto;
+      width: 90%;
+      max-width: 400px;
+      border-radius: 12px;
+      box-shadow: 0 0 20px cyan;
+    }
+
+    .vault-box h1 {
+      color: cyan;
+      text-shadow: 0 0 8px cyan;
+    }
+
+    input {
+      padding: 10px;
+      font-size: 1.2rem;
+      width: 220px;
+      border-radius: 6px;
+      border: none;
+      text-align: center;
+    }
+
+    button {
+      margin-top: 15px;
+      padding: 10px 20px;
+      font-size: 1rem;
+      background: cyan;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      box-shadow: 0 0 10px cyan;
+    }
+
+    .feedback {
+      margin-top: 20px;
+      font-weight: bold;
+      color: yellow;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    #prizeBox {
+      margin-top: 15px;
+      font-size: 1.5rem;
+      color: #0f0;
+      text-shadow: 0 0 6px #0f0;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="vault-box">
+    <h1>🔐 Crack the Vault</h1>
+    <p>Enter the 5-digit code to win a prize!</p>
+    <input type="text" id="codeInput" placeholder="42817" maxlength="5" />
+    <br>
+    <button onclick="submitCode()">Crack the Vault</button>
+    <div class="feedback" id="feedback"></div>
+    <div id="prizeBox" class="hidden">🎉 You won: <span id="prizeAmount">$0.00</span> 🎉</div>
+  </div>
+
+  <script>
+let correctCode = "00000"; // fallback default
+let maxPrize = 42.30; // fallback cap
+
+// Pull live values from backend
+fetch("http://localhost:5000/api/admin/settings")
+  .then(res => res.json())
+  .then(data => {
+    if (data && data.vaultCode) correctCode = data.vaultCode;
+    if (data && data.bonusMax) maxPrize = parseFloat(data.bonusMax);
+    console.log("✅ Settings loaded:", correctCode, maxPrize);
+  })
+  .catch(err => {
+    console.error("❌ Error loading vault settings:", err);
+  });
+
+function submitCode() {
+  const input = document.getElementById("codeInput").value.trim();
+  const feedback = document.getElementById("feedback");
+  const prizeBox = document.getElementById("prizeBox");
+  const prizeAmount = document.getElementById("prizeAmount");
+
+  if (input.length !== 5 || isNaN(input)) {
+    feedback.textContent = "Please enter a valid 5-digit code.";
+    prizeBox.classList.add("hidden");
+    return;
+  }
+
+  let correctDigits = 0;
+  let correctPositions = 0;
+
+  for (let i = 0; i < 5; i++) {
+    if (input.includes(correctCode[i])) correctDigits++;
+    if (input[i] === correctCode[i]) correctPositions++;
+  }
+
+  if (input === correctCode) {
+    const prize = Math.random() * (maxPrize - 5) + 5; // min $5, max = bonusMax
+    const roundedPrize = Math.round(prize * 100) / 100;
+    prizeAmount.textContent = `$${roundedPrize.toFixed(2)}`;
+    feedback.textContent = "✅ Vault unlocked!";
+    prizeBox.classList.remove("hidden");
+  } else {
+    feedback.textContent = `${correctDigits} digit(s) correct, ${correctPositions} in correct position.`;
+    prizeBox.classList.add("hidden");
+  }
+}
+</script>
+
+</body>
+</html>
